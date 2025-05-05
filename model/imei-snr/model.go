@@ -1,27 +1,18 @@
-package imei_snr
+package imei_snr_model
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"unicode"
 )
 
-var ErrInvalidSNR = errors.New("invalid SNR")
-
 // SNR — Serial number.
 type SNR string
 
-func (x SNR) IsValid() bool {
-	return x.Validate() == nil
-}
-
-func (x SNR) String() string {
-	return string(x)
-}
-
 func (x SNR) Validate() error {
 	if len(x) != 6 || !strings.ContainsFunc(string(x), unicode.IsDigit) {
-		return ErrInvalidSNR
+		return errors.New("invalid SNR")
 	}
 
 	return nil
@@ -31,7 +22,7 @@ func NewSNR(s string) (SNR, error) {
 	x := SNR(s)
 
 	if err := x.Validate(); err != nil {
-		return "", err
+		return "", fmt.Errorf("x.Validate: %w", err)
 	}
 
 	return x, nil

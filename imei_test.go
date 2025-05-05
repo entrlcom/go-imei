@@ -1,45 +1,53 @@
-package imei_test
+package imei
 
 import (
 	"testing"
 
-	"github.com/onsi/ginkgo/v2"
-	"github.com/onsi/gomega"
-
-	"entrlcom.dev/imei"
+	"github.com/stretchr/testify/require"
 )
 
-func Test(t *testing.T) {
+func TestNewIMEI(t *testing.T) {
 	t.Parallel()
 
-	gomega.RegisterFailHandler(ginkgo.Fail)
-	ginkgo.RunSpecs(t, "IMEI Test Suite")
+	t.Run("IMEI", func(t *testing.T) {
+		t.Parallel()
+
+		v, err := NewIMEI("35-209900-176148-1")
+		require.NoError(t, err)
+		require.NotZero(t, v)
+
+		require.Equal(t, "1", string(v.GetCD()))
+		require.True(t, v.IsIMEI())
+		require.False(t, v.IsIMEISV())
+		require.Equal(t, "176148", string(v.GetSNR()))
+		require.Equal(t, "35 209900 176148 1", v.String())
+		require.Zero(t, v.GetSVN())
+		require.Equal(t, "209900", string(v.GetTAC().GetID()))
+		require.Equal(t, "35", string(v.GetTAC().GetRBI()))
+	})
+
+	t.Run("IMEISV", func(t *testing.T) {
+		t.Parallel()
+
+		v, err := NewIMEI("35-209900-176148-23")
+		require.NoError(t, err)
+		require.NotZero(t, v)
+
+		require.Zero(t, v.GetCD())
+		require.False(t, v.IsIMEI())
+		require.True(t, v.IsIMEISV())
+		require.Equal(t, "176148", string(v.GetSNR()))
+		require.Equal(t, "35 209900 176148 23", v.String())
+		require.Equal(t, "23", string(v.GetSVN()))
+		require.Equal(t, "209900", string(v.GetTAC().GetID()))
+		require.Equal(t, "35", string(v.GetTAC().GetRBI()))
+	})
 }
 
-var _ = ginkgo.Describe("NewIMEI", func() {
-	ginkgo.It("IMEI", func() {
-		v, err := imei.NewIMEI("35-209900-176148-1")
-		gomega.Expect(err).To(gomega.Succeed())
-		gomega.Expect(v.CD().String()).To(gomega.Equal("1"))
-		gomega.Expect(v.IsIMEI()).To(gomega.BeTrue())
-		gomega.Expect(v.IsIMEISV()).To(gomega.BeFalse())
-		gomega.Expect(v.SNR().String()).To(gomega.Equal("176148"))
-		gomega.Expect(v.String()).To(gomega.Equal("35 209900 176148 1"))
-		gomega.Expect(v.SVN().IsZero()).To(gomega.BeTrue())
-		gomega.Expect(v.TAC().RBI().String()).To(gomega.Equal("35"))
-		gomega.Expect(v.TAC().ID()).To(gomega.Equal("209900"))
-	})
+func TestNewIMEI_Err(t *testing.T) {
+	t.Parallel()
 
-	ginkgo.It("IMEISV", func() {
-		v, err := imei.NewIMEI("35-209900-176148-23")
-		gomega.Expect(err).To(gomega.Succeed())
-		gomega.Expect(v.CD().IsZero()).To(gomega.BeTrue())
-		gomega.Expect(v.IsIMEI()).To(gomega.BeFalse())
-		gomega.Expect(v.IsIMEISV()).To(gomega.BeTrue())
-		gomega.Expect(v.SNR().String()).To(gomega.Equal("176148"))
-		gomega.Expect(v.String()).To(gomega.Equal("35 209900 176148 23"))
-		gomega.Expect(v.SVN().String()).To(gomega.Equal("23"))
-		gomega.Expect(v.TAC().RBI().String()).To(gomega.Equal("35"))
-		gomega.Expect(v.TAC().ID()).To(gomega.Equal("209900"))
-	})
-})
+	v, err := NewIMEI("")
+	require.Error(t, err)
+	require.Zero(t, v)
+}

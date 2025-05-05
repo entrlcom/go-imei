@@ -1,36 +1,19 @@
-package imei_cd
+package imei_cd_model
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"unicode"
 )
 
-var ErrInvalidCD = errors.New("invalid CD")
-
 // CD — Check Digit.
 type CD string
 
-func (x CD) IsEqual(v CD) bool {
-	return x == v
-}
-
-func (x CD) IsValid() bool {
-	return x.Validate() == nil
-}
-
-func (x CD) IsZero() bool {
-	return len(x) == 0
-}
-
-func (x CD) String() string {
-	return string(x)
-}
-
 func (x CD) Validate() error {
 	if len(x) != 1 || !strings.ContainsFunc(string(x), unicode.IsDigit) {
-		return ErrInvalidCD
+		return errors.New("invalid CD")
 	}
 
 	return nil
@@ -40,7 +23,7 @@ func NewCD(s string) (CD, error) {
 	x := CD(s)
 
 	if err := x.Validate(); err != nil {
-		return "", err
+		return "", fmt.Errorf("x.Validate: %w", err)
 	}
 
 	return x, nil
@@ -52,21 +35,21 @@ func ComputeCD(s string) (CD, error) {
 	for i, v := range strings.Split(s, "") {
 		n, err := strconv.ParseInt(v, 10, 8)
 		if err != nil {
-			return "", errors.Join(err, ErrInvalidCD)
+			return "", fmt.Errorf("strconv.ParseInt: %w", err)
 		}
 
 		if i%2 == 1 {
 			n *= 2
 		}
 
-		if n > 9 { //nolint:gomnd // OK.
-			n = n%10 + 1 //nolint:gomnd // OK.
+		if n > 9 { //nolint:mnd // OK.
+			n = n%10 + 1 //nolint:mnd // OK.
 		}
 
 		sum += n
 	}
 
-	sum = (10 - sum%10) % 10 //nolint:gomnd // OK.
+	sum = (10 - sum%10) % 10 //nolint:mnd // OK.
 
 	return NewCD(strconv.FormatInt(sum, 10))
 }
