@@ -8,17 +8,15 @@ permissions:
 
 jobs:
   test:
-    name: Run Go Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/go
         with:
-          BOT_GITHUB_PAT:  ${{ secrets.BOT_GITHUB_PAT }}
           GO_VERSION: ${{ vars.GO_VERSION }}
 
       - name: Run Test
-        run: go test -count=1 -covermode=atomic -coverprofile=cover.out.tmp -race ./internal/...
+        run: go test -count=1 -covermode=atomic -coverprofile=cover.out.tmp -race ./...
 
       - name: Run Code Coverage
         run: |
@@ -30,16 +28,14 @@ jobs:
           fi
 
       - name: Run Flaky Test
-        run: go test -count=100 ./internal/...
+        run: go test -count=100 ./...
 
   golangci-lint:
-    name: Run golangci-lint
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/go
         with:
-          BOT_GITHUB_PAT: ${{ secrets.BOT_GITHUB_PAT }}
           GO_VERSION: ${{ vars.GO_VERSION }}
 
       - uses: golangci/golangci-lint-action@v7
@@ -47,13 +43,11 @@ jobs:
           version: v2.1.2
 
   govulncheck:
-    name: Run govulncheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/go
         with:
-          BOT_GITHUB_PAT: ${{ secrets.BOT_GITHUB_PAT }}
           GO_VERSION: ${{ vars.GO_VERSION }}
 
       - uses: golang/govulncheck-action@v1
